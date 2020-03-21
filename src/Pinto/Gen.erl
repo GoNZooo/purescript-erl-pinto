@@ -5,6 +5,7 @@
 % FFI
 -export([
          startLinkImpl/5,
+         startLinkImplWithoutName/4,
          callImpl/2,
          doCallImpl/2,
          castImpl/2,
@@ -55,6 +56,14 @@ doCastImpl(Name, Fn) -> fun() ->
 castImpl(Name, Fn) -> fun() ->
                           gen_server:cast(Name, { wrapped_pure_cast, Fn })
                       end.
+
+startLinkImplWithoutName(Left, Right, Effect, HandleInfo) ->
+  fun() ->
+    case gen_server:start_link(?MODULE, [Effect, HandleInfo], []) of
+      {ok, Pid} -> Right(Pid);
+      {error, E} -> Left(E)
+    end
+  end.
 
 startLinkImpl(Left, Right, Name, Effect, HandleInfo) ->
   fun() ->

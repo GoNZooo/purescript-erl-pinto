@@ -1,6 +1,7 @@
 -- | Module roughly representing interactions with the 'gen_server'
 -- | See also 'gen_server' in the OTP docs
 module Pinto.Gen ( startLink
+                 , startLinkWithoutName
                  , CallResult(..)
                  , CastResult(..)
                  , call
@@ -34,6 +35,7 @@ foreign import doCallImpl :: forall response state name. name -> (state -> Effec
 foreign import castImpl :: forall state name. name -> (state -> (CastResult state)) -> Effect Unit
 foreign import doCastImpl :: forall state name. name -> (state -> Effect (CastResult state)) -> Effect Unit
 foreign import startLinkImpl :: forall a b name state msg. (a -> Either a b) -> (b -> Either a b) ->name -> Effect state -> (msg -> state -> Effect (CastResult state)) -> Effect StartLinkResult
+foreign import startLinkImplWithoutName :: forall a b state msg. (a -> Either a b) -> (b -> Either a b) -> Effect state -> (msg -> state -> Effect (CastResult state)) -> Effect StartLinkResult
 foreign import registerExternalMappingImpl :: forall externalMsg msg name. name -> (externalMsg -> Maybe msg) -> Effect Unit
 foreign import monitorImpl :: forall externalMsg msg name toMonitor. name -> toMonitor -> (externalMsg -> msg) -> Effect Unit
 
@@ -82,6 +84,9 @@ startLink :: forall state msg. ServerName state msg -> Effect state -> (msg -> s
 startLink (Local name) = startLink_ $ tuple2 (atom "local") name
 startLink (Global name) = startLink_ $ tuple2 (atom "global") name
 startLink (Via (NativeModuleName m) name) = startLink_ $ tuple3 (atom "via") m name
+
+startLinkWithoutName :: forall state msg. Effect state -> (msg -> state -> Effect (CastResult state)) -> Effect StartLinkResult
+startLinkWithoutName = startLinkImplWithoutName Left Right
 
 startLink_ = startLinkImpl Left Right
 
