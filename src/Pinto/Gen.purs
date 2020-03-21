@@ -5,8 +5,10 @@ module Pinto.Gen ( startLink
                  , CastResult(..)
                  , call
                  , doCall
+                 , doCallByPid
                  , cast
                  , doCast
+                 , doCastByPid
                  , defaultHandleInfo
                  , registerExternalMapping
                  , monitorName
@@ -25,6 +27,7 @@ import Erl.ModuleName (NativeModuleName(..))
 import Erl.Process.Raw (Pid)
 import Foreign (Foreign, unsafeToForeign)
 import Pinto (ServerName(..), StartLinkResult)
+import Pinto.Types (ServerPid(..))
 
 foreign import callImpl :: forall response state name. name -> (state -> (CallResult response state)) -> Effect response
 foreign import doCallImpl :: forall response state name. name -> (state -> Effect (CallResult response state)) -> Effect response
@@ -112,6 +115,9 @@ call name fn = callImpl (nativeName name) fn
 doCall :: forall response state msg. ServerName state msg -> (state -> Effect (CallResult response state)) -> Effect response
 doCall name fn = doCallImpl (nativeName name) fn
 
+doCallByPid :: ∀ response state. ServerPid state -> (state -> Effect (CallResult response state)) -> Effect response
+doCallByPid (ServerPid pid) fn = doCallImpl pid fn
+
 -- | Defines an "pure" cast that performs an interaction on the state held by the gen server
 -- | ```purescript
 -- | doSomething :: Effect Unit
@@ -129,3 +135,6 @@ cast name fn = castImpl (nativeName name) fn
 -- | See also handle_cast and gen_server:cast in the OTP docs
 doCast :: forall state msg. ServerName state msg -> (state -> Effect (CastResult state)) -> Effect Unit
 doCast name fn = doCastImpl (nativeName name) fn
+
+doCastByPid :: ∀ state. ServerPid state -> (state -> Effect (CastResult state)) -> Effect Unit
+doCastByPid (ServerPid pid) fn = doCastImpl pid fn

@@ -1,6 +1,7 @@
 module Pinto.Types where
 
 import Data.Either (Either)
+import Data.Newtype (class Newtype)
 import Effect (Effect)
 import Erl.Atom (Atom)
 import Erl.ModuleName (NativeModuleName)
@@ -26,3 +27,6 @@ data StartChildResult = AlreadyStarted Pid | Started Pid
 
 -- | The type used to link startSimpleChild and startTemplate together
 data ChildTemplate args = ChildTemplate (args -> Effect StartLinkResult)
+
+newtype ServerPid state = ServerPid Pid
+derive instance serverPidNewtype :: Newtype (ServerPid state) _
